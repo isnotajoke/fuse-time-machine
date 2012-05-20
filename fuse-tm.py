@@ -4,7 +4,7 @@ import errno
 import os
 import stat
 
-class TimeMachine(Fuse):
+class TimeMachineFS(Fuse):
     """
     A FUSE interface to interface with a time machine backup.
     """
