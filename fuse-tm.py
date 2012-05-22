@@ -198,6 +198,19 @@ class TimeMachineFS(Fuse):
         return -errno.ENOSYS
 
     # Utility methods
+    def split_path(self, path):
+        """
+        Repeatedly call os.path.split to get a list of path components.
+        """
+        comps = []
+        while True:
+            head, tail = os.path.split(path)
+            if not tail: break
+            comps.append(tail)
+            path = head
+        comps.reverse()
+        return comps
+
     def get_real_path(self, path):
         """
         I translate a conceptual path (e.g.,
@@ -209,20 +222,14 @@ class TimeMachineFS(Fuse):
         # leading /s confuse os.path.join
         if path.startswith("/"):
             path = path[1:]
-        comps = os.path.split(path)
-        syslog.syslog
+        comps = self.split_path(path)
         # Check each component for validity.
         path = self.basedir
-        syslog.syslog(path)
         for comp in comps:
-            syslog.syslog("considering %s" % comp)
-            syslog.syslog("joining %s and %s" % (path, comp))
             candidate = os.path.join(path, comp)
-            syslog.syslog("translates to candidate path %s" % candidate)
             # the candidate can be a directory, in which case we keep
             # going...
             if os.path.isdir(candidate):
-                syslog.syslog("is a directory")
                 path = candidate
                 continue
             # otherwise, it's a file, and we need to stat it to learn
@@ -231,14 +238,11 @@ class TimeMachineFS(Fuse):
 
             # if the size is greater than 0, then it's a file.
             if st_info.st_size > 0 or st_info.st_nlink < 100:
-                syslog.syslog("is a file")
                 path = candidate
                 continue
 
             # otherwise, it might be a directory disguised as a file.
-            syslog.syslog("is a fake file, looking up the directory")
             new_path = os.path.join(self.private_dir, "dir_%s" % st_info.st_nlink)
-            syslog.syslog("checking new path %s" % new_path)
             assert os.path.isdir(new_path)
             path = new_path
 
