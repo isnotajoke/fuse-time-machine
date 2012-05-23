@@ -39,7 +39,6 @@ class TimeMachineFS(Fuse):
         # XXX: Should have an internal error routine that handles this
         # sorts of messages -- it's not a parser problem.
         if not self.check_options(): parser.error("invalid options")
-        return
 
     def check_options(self):
         """
