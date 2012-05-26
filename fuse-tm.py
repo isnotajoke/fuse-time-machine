@@ -63,7 +63,7 @@ class TimeMachineFS(Fuse):
             for e in entries:
                 yield fuse.Direntry(e)
 
-    def statfs ( self ):
+    def statfs(self):
         syslog.syslog('handling statfs')
         return self.run_operation_on_real_path(path, os.statvfs)
 
@@ -73,7 +73,7 @@ class TimeMachineFS(Fuse):
             return 0
         return 1
 
-    def readlink ( self, path ):
+    def readlink(self, path):
         syslog.syslog("reading link at %s" % path)
         target = self.run_operation_on_real_path(path, os.readlink)
         return self.get_real_path(target)
