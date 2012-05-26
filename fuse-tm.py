@@ -69,6 +69,7 @@ class TimeMachineFS(Fuse):
 
     def access(self, path, mode):
         res = self.run_operation_on_real_path(path, lambda rp: os.access(rp, mode))
+        # convert True/False return to 0 or 1 as appropriate.
         if res:
             return 0
         return 1
@@ -81,7 +82,8 @@ class TimeMachineFS(Fuse):
     class TimeMachineFile(object):
         def __init__(self, path, flags):
             self.realpath = self.fuse_object.get_real_path(path)
-            # ignore flags and mode, we're read-only
+            # ignore flags and mode, we're read-only, and should only ever read
+            # things.
             self.fo = open(self.realpath, "r")
 
         def read(self, length, offset):
