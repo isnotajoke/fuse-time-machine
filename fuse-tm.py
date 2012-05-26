@@ -20,9 +20,8 @@ class TimeMachineFS(Fuse):
 
     def readdir(self, path, offset):
         entries = self.run_operation_on_real_path(path, os.listdir)
-        if entries is not None:
-            for e in entries:
-                yield fuse.Direntry(e)
+        for e in entries:
+            yield fuse.Direntry(e)
 
     def statfs(self):
         return self.run_operation_on_real_path(path, os.statvfs)
@@ -129,13 +128,8 @@ class TimeMachineFS(Fuse):
         raises an exception, I return None to my caller.
         """
         realpath = self.get_real_path(path)
-        result = None
-        try:
-            result = op(realpath)
-        except OSError, e:
-            pass
-        finally:
-            return result
+        result = op(realpath)
+        return result
 
     def check_options(self):
         """
