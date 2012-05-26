@@ -92,7 +92,7 @@ class TimeMachineFS(Fuse):
         return self.run_operation_on_real_path(path, os.readlink)
 
     class TimeMachineFile(object):
-        def __init__(self, path, flags, mode):
+        def __init__(self, path, flags):
             self.realpath = self.fuse_object.get_real_path(path)
             # ignore flags and mode, we're read-only
             self.fo = open(realpath, "r")
