@@ -82,7 +82,10 @@ class TimeMachineFS(Fuse):
         return self.run_operation_on_real_path(path, os.statvfs)
 
     def access(self, path, mode):
-        return self.run_operation_on_real_path(path, lambda rp: os.access(rp, mode))
+        res = self.run_operation_on_real_path(path, lambda rp: os.access(rp, mode))
+        if res:
+            return 0
+        return 1
 
     def readlink ( self, path ):
         syslog.syslog("reading link at %s" % path)
