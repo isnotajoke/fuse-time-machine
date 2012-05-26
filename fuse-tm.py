@@ -15,41 +15,6 @@ class TimeMachineFS(Fuse):
     """
     A fuse.Fuse subclass to interface with a mounted time machine backup.
     """
-    def check_options(self):
-        """
-        I check to make sure that the self.hfs_path attribute points to
-        a mounted filesystem that looks like a time machine
-        implementation, and that the self.hostname exists.
-        """
-        # check that self.hfs_path exists...
-        try:
-            dirents = os.listdir(self.hfs_path)
-        except OSError: # doesn't exist, not a directory, etc
-            return False
-
-        # ...and that it contains the private directory that we're
-        # looking for.
-        self.private_dir = None
-        for de in dirents:
-            if de.startswith(".HFS+ Private Directory Data"):
-                self.private_dir = os.path.join(self.hfs_path, de)
-                break
-
-        if self.private_dir is None:
-            return False
-
-        # Now check that self.hostname is an actual hostname in the mountpoint and
-        # has a Latest dir to restore
-        path_to_hd = os.path.join(self.hfs_path, "Backups.backupdb", self.hostname, "Latest")
-        try:
-            os.stat(path_to_hd)
-        except OSError:
-            return False
-
-        self.basedir = path_to_hd
-
-        return True
-
     # FUSE API methods
     def getattr(self, path):
         syslog.syslog("handling getattr on %s" % path)
@@ -97,79 +62,6 @@ class TimeMachineFS(Fuse):
             return os.stat(self.realpath)
 
         # write capabilities aren't implemented.
-
-    def main(self, *a, **kw):
-        self.file_class = self.TimeMachineFile
-        self.file_class.fuse_object = self
-
-        # populate options
-        if not hasattr(self, "hfs_path"):
-            self.parser.error("error: HFS path not specified")
-
-        if not hasattr(self, "hostname"):
-            self.parser.error("error: hostname not specified")
-
-        if not self.check_options():
-            self.parser.error("error: bad options")
-
-        return Fuse.main(self, *a, **kw)
-
-    # The following operations aren't supported.
-    def rename ( self, oldPath, newPath ):
-        syslog.syslog("rename")
-        return -errno.ENOSYS
-
-    def rmdir ( self, path ):
-        syslog.syslog("rmdir")
-        return -errno.ENOSYS
-
-    def mythread(self):
-        syslog.syslog("mythread")
-        return -errno.ENOSYS
-
-    def chmod (self, path, mode):
-        syslog.syslog("chmod")
-        return -errno.ENOSYS
-
-    def chown(self, path, uid, gid):
-        syslog.syslog("chown")
-        return -errno.ENOSYS
-
-    def fsync(self, path, isFsyncFile):
-        syslog.syslog("fsync")
-        return -errno.ENOSYS
-
-    def link(self, targetPath, linkPath):
-        syslog.syslog("link")
-        return -errno.ENOSYS
-
-    def mkdir ( self, path, mode ):
-        syslog.syslog("mkdir")
-        return -errno.ENOSYS
-
-    def mknod ( self, path, mode, dev ):
-        syslog.syslog("mknod")
-        return -errno.ENOSYS
-
-    def symlink ( self, targetPath, linkPath ):
-        syslog.syslog("symlink")
-        return -errno.ENOSYS
-
-    def truncate ( self, path, size ):
-        syslog.syslog("truncate")
-        return -errno.ENOSYS
-
-    def unlink ( self, path ):
-        syslog.syslog("unlink")
-        return -errno.ENOSYS
-
-    def utime ( self, path, times ):
-        syslog.syslog("utime")
-        return -errno.ENOSYS
-
-    def write ( self, path, buf, offset ):
-        syslog.syslog("write")
-        return -errno.ENOSYS
 
     # Utility methods
     def split_path(self, path):
@@ -253,6 +145,57 @@ class TimeMachineFS(Fuse):
             pass
         finally:
             return result
+
+    def check_options(self):
+        """
+        I check to make sure that the self.hfs_path attribute points to
+        a mounted filesystem that looks like a time machine
+        implementation, and that the self.hostname exists.
+        """
+        # check that self.hfs_path exists...
+        try:
+            dirents = os.listdir(self.hfs_path)
+        except OSError: # doesn't exist, not a directory, etc
+            return False
+
+        # ...and that it contains the private directory that we're
+        # looking for.
+        self.private_dir = None
+        for de in dirents:
+            if de.startswith(".HFS+ Private Directory Data"):
+                self.private_dir = os.path.join(self.hfs_path, de)
+                break
+
+        if self.private_dir is None:
+            return False
+
+        # Now check that self.hostname is an actual hostname in the mountpoint and
+        # has a Latest dir to restore
+        path_to_hd = os.path.join(self.hfs_path, "Backups.backupdb", self.hostname, "Latest")
+        try:
+            os.stat(path_to_hd)
+        except OSError:
+            return False
+
+        self.basedir = path_to_hd
+
+        return True
+
+    def main(self, *a, **kw):
+        self.file_class = self.TimeMachineFile
+        self.file_class.fuse_object = self
+
+        # populate options
+        if not hasattr(self, "hfs_path"):
+            self.parser.error("error: HFS path not specified")
+
+        if not hasattr(self, "hostname"):
+            self.parser.error("error: hostname not specified")
+
+        if not self.check_options():
+            self.parser.error("error: bad options")
+
+        return Fuse.main(self, *a, **kw)
 
 
 if __name__=="__main__":
