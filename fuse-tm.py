@@ -50,13 +50,6 @@ class TimeMachineFS(Fuse):
 
         return True
 
-    def error(self, msg):
-        """
-        I print an error and then exit.
-        """
-        print >>os.stderr, msg
-        sys.exit(1)
-
     # FUSE API methods
     def getattr(self, path):
         """
