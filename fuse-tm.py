@@ -8,7 +8,8 @@ import stat
 import sys
 import syslog
 
-#fuse.fuse_python_api = (0, 2)
+fuse.fuse_python_api = (0, 2)
+fuse.feature_assert('stateful_files')
 
 class TimeMachineFS(Fuse):
     """
