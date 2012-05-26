@@ -15,9 +15,6 @@ class TimeMachineFS(Fuse):
     """
     A FUSE interface to interface with a time machine backup.
     """
-    def __init__(self, *args, **kwargs):
-        Fuse.__init__(self, *args, **kwargs)
-
     def check_options(self):
         """
         I check to make sure that the self.hfs_path attribute points to
