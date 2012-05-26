@@ -16,29 +16,6 @@ class TimeMachineFS(Fuse):
     """
     def __init__(self, *args, **kwargs):
         Fuse.__init__(self, *args, **kwargs)
-        # keep track of open file descriptors so we can close them
-        # later.
-        # path => (flags => fd)
-        #
-        # By the docs, each (path, flags) combination will get one open
-        # and one release.
-        self.fds = {}
-
-        if "hfs_path" not in kwargs:
-            self.parser.error("hfs_path option required, not found")
-
-        # Base directory -- points to a mounted HFS+ filesystem 
-        self.hfs_path = kwargs['hfs_path']
-
-        if "hostname" not in kwargs:
-            self.parser_error("hd option required, not found")
-
-        # Name of the host that we're recovering.
-        self.hostname = kwargs["hostname"]
-
-        # XXX: Should have an internal error routine that handles this
-        # sorts of messages -- it's not a parser problem.
-        if not self.check_options(): parser.error("invalid options")
 
     def check_options(self):
         """
@@ -110,34 +87,46 @@ class TimeMachineFS(Fuse):
         syslog.syslog('handling statfs')
         return self.run_operation_on_real_path(path, os.statvfs)
 
-    def open (self, path, flags):
-        # Ignore flags; we're read-only, and we return an error if they
-        # try to write to us.
-        syslog.syslog("opening fd for %s" % path)
-        fd = self.run_operation_on_real_path(path, lambda realpath: os.open(realpath, os.O_RDONLY))
-        if fd is None:
-            return 1
-
-        self.fds.setdefault(path, {})[flags] = fd
-        return 0
-
-    def read ( self, path, length, offset ):
-        syslog.syslog("reading data from %s" % path)
-        f = self.run_operation_on_real_path(path, lambda realpath: open(realpath, "rb"))
-        f.seek(offset)
-        data = f.read(length)
-        f.close()
-        return data
+    def access(self, path, mode):
+        return self.run_operation_on_real_path(path, lambda rp: os.access(rp, mode))
 
     def readlink ( self, path ):
         syslog.syslog("reading link at %s" % path)
         return self.run_operation_on_real_path(path, os.readlink)
 
-    def release(self, path, flags):
-        syslog.syslog("releasing %s" % path)
-        fd = self.fds[path][flags]
-        os.close(fd)
-        del(self.fds[path][flags])
+    class TimeMachineFile(object):
+        def __init__(self, path, flags, mode):
+            self.realpath = self.fuse_object.get_real_path(path)
+            # ignore flags and mode, we're read-only
+            self.fo = open(realpath, "r")
+
+        def read(self, length, offset):
+            self.fo.seek(offset)
+            return self.fo.read(length)
+
+        def release(self, flags):
+            self.fo.close()
+
+        def fgetattr(self):
+            return os.statu(self.realpath)
+
+        # write capabilities aren't implemented.
+
+    def main(self, *a, **kw):
+        self.file_class = self.TimeMachineFile
+        self.file_class.fuse_object = self
+
+        # populate options
+        if not hasattr(self, "hfs_path"):
+            self.parser.error("error: HFS path not specified")
+
+        if not hasattr(self, "hostname"):
+            self.parser.error("error: hostname not specified")
+
+        if not self.check_options():
+            self.parser.error("error: bad options")
+
+        return Fuse.main(self, *a, **kw)
 
     # The following operations aren't supported.
     def rename ( self, oldPath, newPath ):
@@ -266,20 +255,15 @@ class TimeMachineFS(Fuse):
         finally:
             return result
 
+
 if __name__=="__main__":
-    # build an argument parser. We're looking for something that
-    # handles invocations of the form:
-    #   $0 mountpoint --hfs_path --hd
-    parser = argparse.ArgumentParser(description="translation layer for paths on an HFS+ time machine backup")
+    fs = TimeMachineFS(version="%prog " + fuse.__version__,
+                       usage="read-only FUSE interface to a time machine drive")
+    fs.parser.add_option("--hfs-path", help="Path to mounted HFS+ filesystem",
+                         action='store', dest='hfs_path', default=None, nargs=1)
+    fs.parser.add_option("--hostname", help="Hostname of the system to be recovered",
+                         action='store', dest='hostname', default=None, nargs=1)
 
-    parser.add_argument("mountpoint", action='store')
-    parser.add_argument("--hfs-path", dest='hfs_path', action='store', help='path to the HFS+ time machine filesystem')
-    parser.add_argument("--hostname", dest='hostname', action='store', help='name of the host you want to mount')
-
-    args = parser.parse_args()
-
-    fs = TimeMachineFS(args.mountpoint, hfs_path=args.hfs_path, hostname=args.hostname)
-    fs.flags = 0
-    fs.multithreaded = 0
-    fs.debug = True
+    # causes parsed options to be stored as attributes in fs, e.g., fs.hostname, fs.hfs_path
+    fs.parse(values=fs, errex=1)
     fs.main()
