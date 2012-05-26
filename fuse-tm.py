@@ -1,11 +1,7 @@
 import fuse # for fuse_python_api
 from fuse import Fuse
 
-import argparse
-import errno
 import os
-import stat
-import sys
 
 fuse.fuse_python_api = (0, 2)
 fuse.feature_assert('stateful_files')
