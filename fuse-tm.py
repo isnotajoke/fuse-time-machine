@@ -6,7 +6,6 @@ import errno
 import os
 import stat
 import sys
-import syslog
 
 fuse.fuse_python_api = (0, 2)
 fuse.feature_assert('stateful_files')
@@ -17,19 +16,15 @@ class TimeMachineFS(Fuse):
     """
     # FUSE API methods
     def getattr(self, path):
-        syslog.syslog("handling getattr on %s" % path)
         return self.run_operation_on_real_path(path, os.stat)
 
     def readdir(self, path, offset):
-        syslog.syslog("handling readdir on %s" % path)
         entries = self.run_operation_on_real_path(path, os.listdir)
-        syslog.syslog("got entries %s for %s" % (entries, path))
         if entries is not None:
             for e in entries:
                 yield fuse.Direntry(e)
 
     def statfs(self):
-        syslog.syslog('handling statfs')
         return self.run_operation_on_real_path(path, os.statvfs)
 
     def access(self, path, mode):
@@ -40,7 +35,6 @@ class TimeMachineFS(Fuse):
         return 1
 
     def readlink(self, path):
-        syslog.syslog("reading link at %s" % path)
         target = self.run_operation_on_real_path(path, os.readlink)
         return self.get_real_path(target)
 
@@ -134,14 +128,11 @@ class TimeMachineFS(Fuse):
         returns something, I return that to my caller. If the operation
         raises an exception, I return None to my caller.
         """
-        syslog.syslog("asked to run an operation on %s" % path)
         realpath = self.get_real_path(path)
-        syslog.syslog("this translates to real path %s" % realpath)
         result = None
         try:
             result = op(realpath)
         except OSError, e:
-            syslog.syslog('got error %s' % e)
             pass
         finally:
             return result
