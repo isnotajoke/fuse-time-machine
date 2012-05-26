@@ -13,7 +13,7 @@ fuse.feature_assert('stateful_files')
 
 class TimeMachineFS(Fuse):
     """
-    A FUSE interface to interface with a time machine backup.
+    A fuse.Fuse subclass to interface with a mounted time machine backup.
     """
     def check_options(self):
         """
@@ -52,10 +52,6 @@ class TimeMachineFS(Fuse):
 
     # FUSE API methods
     def getattr(self, path):
-        """
-        Return stats for path by translating it to a real path and then
-        running stat on it normally.
-        """
         syslog.syslog("handling getattr on %s" % path)
         return self.run_operation_on_real_path(path, os.stat)
 
