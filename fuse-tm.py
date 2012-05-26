@@ -95,7 +95,7 @@ class TimeMachineFS(Fuse):
         def __init__(self, path, flags):
             self.realpath = self.fuse_object.get_real_path(path)
             # ignore flags and mode, we're read-only
-            self.fo = open(realpath, "r")
+            self.fo = open(self.realpath, "r")
 
         def read(self, length, offset):
             self.fo.seek(offset)
@@ -105,7 +105,7 @@ class TimeMachineFS(Fuse):
             self.fo.close()
 
         def fgetattr(self):
-            return os.statu(self.realpath)
+            return os.stat(self.realpath)
 
         # write capabilities aren't implemented.
 
