@@ -89,7 +89,8 @@ class TimeMachineFS(Fuse):
 
     def readlink ( self, path ):
         syslog.syslog("reading link at %s" % path)
-        return self.run_operation_on_real_path(path, os.readlink)
+        target = self.run_operation_on_real_path(path, os.readlink)
+        return self.get_real_path(target)
 
     class TimeMachineFile(object):
         def __init__(self, path, flags):
