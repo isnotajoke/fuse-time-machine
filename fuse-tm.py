@@ -69,20 +69,13 @@ class TimeMachineFS(Fuse):
         syslog.syslog("handling getattr on %s" % path)
         return self.run_operation_on_real_path(path, os.stat)
 
-    def getdir(self, path):
-        """
-        return: [[('file1', 0), ('file2', 0), ... ]]
-        """
-        syslog.syslog("handling getdir on %s" % path)
+    def readdir(self, path, offset):
+        syslog.syslog("handling readdir on %s" % path)
         entries = self.run_operation_on_real_path(path, os.listdir)
         syslog.syslog("got entries %s for %s" % (entries, path))
         if entries is not None:
-            # per docs, the listdir call doesn't append the '.' or '..'
-            # entries, so we have to add them ourselves.
-            entries.append(".")
-            entries.append("..")
-        syslog.syslog("returning %s" % entries)
-        return map(lambda x: (x, 0), entries)
+            for e in entries:
+                yield fuse.Direntry(e)
 
     def statfs ( self ):
         syslog.syslog('handling statfs')
@@ -260,6 +253,7 @@ class TimeMachineFS(Fuse):
 if __name__=="__main__":
     fs = TimeMachineFS(version="%prog " + fuse.__version__,
                        usage="read-only FUSE interface to a time machine drive")
+    fs.debug = True
     fs.parser.add_option("--hfs-path", help="Path to mounted HFS+ filesystem",
                          action='store', dest='hfs_path', default=None, nargs=1)
     fs.parser.add_option("--hostname", help="Hostname of the system to be recovered",
