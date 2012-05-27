@@ -150,8 +150,6 @@ class TimeMachineFS(fuse.Fuse):
         path_to, latest = os.path.split(path_to_hd)
         path_to_hd = os.path.join(path_to, target)
 
-        print "hd_path: %s" % path_to_hd
-
         self.basedir = path_to_hd
 
         return True
