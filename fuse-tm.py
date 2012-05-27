@@ -75,26 +75,14 @@ class TimeMachineFS(Fuse):
         to my caller.
         """
         # leading /s confuse os.path.join
-        conceptual_path = ""
         if path.startswith("/"):
             path = path[1:]
-            conceptual_path += "/"
         comps = self.split_path(path)
         # Check each component for validity.
         path = self.basedir
         for comp in comps:
             candidate = os.path.join(path, comp)
 
-            if os.path.islink(candidate):
-                target = os.readlink(candidate)
-                # Does it have a leading /? Then it's an absolute path and we
-                # don't have to deal with it.
-                if not target.startswith(os.path.pathsep):
-                    target = os.path.join(conceptual_path, target)
-                candidate = self.get_real_path(target)
-                conceptual_path = target
-            else:
-                conceptual_path = os.path.join(conceptual_path, comp)
             # the candidate can be a directory, in which case we keep
             # going...
             if os.path.isdir(candidate):
