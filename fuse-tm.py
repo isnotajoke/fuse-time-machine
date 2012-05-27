@@ -158,7 +158,6 @@ class TimeMachineFS(fuse.Fuse):
         self.file_class = self.TimeMachineFile
         self.file_class.fuse_object = self
 
-        # populate options
         if not hasattr(self, "hfs_path"):
             self.parser.error("error: HFS path not specified")
 
