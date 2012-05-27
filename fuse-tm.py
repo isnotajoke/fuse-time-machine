@@ -12,7 +12,7 @@ class TimeMachineFS(Fuse):
     """
     # FUSE API methods
     def getattr(self, path):
-        return self.run_operation_on_real_path(path, os.stat)
+        return self.run_operation_on_real_path(path, os.lstat)
 
     def readdir(self, path, offset):
         entries = self.run_operation_on_real_path(path, os.listdir)
@@ -47,7 +47,7 @@ class TimeMachineFS(Fuse):
             self.fo.close()
 
         def fgetattr(self):
-            return os.stat(self.realpath)
+            return os.lstat(self.realpath)
 
         # write capabilities aren't implemented.
 
@@ -89,7 +89,7 @@ class TimeMachineFS(Fuse):
                 continue
             # otherwise, it's a file, and we need to stat it to learn
             # more about it.
-            st_info = os.stat(candidate)
+            st_info = os.lstat(candidate)
 
             # if the size is greater than 0, then it's a file.
             if st_info.st_size > 0 or st_info.st_nlink < 100:
