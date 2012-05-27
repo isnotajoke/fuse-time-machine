@@ -51,14 +51,9 @@ a use for that functionality so I didn't bother.
 
 ## Bugs ##
 
-Symlink handling is unintuitive and probably wrong. Symlinks are
-followed when possible, but they're followed automatically by the FUSE
-code, and aren't displayed as symlinks to userspace. This breaks tools
-that change their behavior depending on whether they're dealing with a
-symlink or not (e.g., tools that are told to not follow or exclude
-symlinks). Not an issue for my use case, but something to be aware of.
-
-It's software, so there are probably lots of bugs.
+I'm not aware of any specific bugs. It's software that's undergone
+limited testing (by me, restoring my backups), so it's very likely that
+there are bugs.
 
 ## Author ##
 
