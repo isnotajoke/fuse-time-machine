@@ -30,8 +30,7 @@ class TimeMachineFS(Fuse):
         return 1
 
     def readlink(self, path):
-        target = self.run_operation_on_real_path(path, os.readlink)
-        return self.get_real_path(target)
+        return self.run_operation_on_real_path(path, os.readlink)
 
     class TimeMachineFile(object):
         def __init__(self, path, flags):
