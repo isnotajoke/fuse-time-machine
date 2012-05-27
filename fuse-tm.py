@@ -1,12 +1,10 @@
-import fuse # for fuse_python_api
-from fuse import Fuse
-
+import fuse
 import os
 
 fuse.fuse_python_api = (0, 2)
 fuse.feature_assert('stateful_files')
 
-class TimeMachineFS(Fuse):
+class TimeMachineFS(fuse.Fuse):
     """
     A fuse.Fuse subclass to interface with a mounted time machine backup.
     """
@@ -172,7 +170,7 @@ class TimeMachineFS(Fuse):
         if not self.check_options():
             self.parser.error("error: bad options")
 
-        return Fuse.main(self, *a, **kw)
+        return fuse.Fuse.main(self, *a, **kw)
 
 
 if __name__=="__main__":
