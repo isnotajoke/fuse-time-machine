@@ -174,7 +174,6 @@ class TimeMachineFS(fuse.Fuse):
 if __name__=="__main__":
     fs = TimeMachineFS(version="%prog " + fuse.__version__,
                        usage="read-only FUSE interface to a time machine drive")
-    fs.debug = True
     fs.parser.add_option("--hfs-path", help="Path to mounted HFS+ filesystem",
                          action='store', dest='hfs_path', default=None, nargs=1)
     fs.parser.add_option("--hostname", help="Hostname of the system to be recovered",
