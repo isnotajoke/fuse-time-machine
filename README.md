@@ -53,8 +53,11 @@ a use for that functionality so I didn't bother.
 
 I'm not aware of any specific bugs. It's software that's undergone
 limited testing (by me, restoring my backups), so it's very likely that
-there are bugs.
+there are bugs. If you think you've found a bug, please open an issue on
+github [1].
 
 ## Author ##
 
 Kevan Carstensen <kacarstensen@csupomona.edu>
+
+[1] https://github.com/isnotajoke/fuse-time-machine
