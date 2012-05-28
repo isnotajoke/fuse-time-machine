@@ -112,7 +112,7 @@ class TimeMachineFS(fuse.Fuse):
         result = op(realpath)
         return result
 
-    def check_options(self):
+    def check_hfs_path(self):
         """
         I check to make sure that the self.hfs_path attribute points to
         a mounted filesystem that looks like a time machine
@@ -135,6 +135,9 @@ class TimeMachineFS(fuse.Fuse):
         if self.private_dir is None:
             return False
 
+        return True
+
+    def check_hostname(self):
         # Now check that self.hostname is an actual hostname in the mountpoint and
         # has a Latest dir to restore
         path_to_hd = os.path.join(self.hfs_path, "Backups.backupdb", self.hostname, "Latest")
@@ -161,11 +164,14 @@ class TimeMachineFS(fuse.Fuse):
         if not hasattr(self, "hfs_path"):
             self.parser.error("error: HFS path not specified")
 
+        if not self.check_hfs_path():
+            self.parser.error("error: invalid HFS path specified")
+
         if not hasattr(self, "hostname"):
             self.parser.error("error: hostname not specified")
 
-        if not self.check_options():
-            self.parser.error("error: bad options")
+        if not self.check_hostname():
+            self.parser.error("error: invalid hostname specified")
 
         return fuse.Fuse.main(self, *a, **kw)
 
